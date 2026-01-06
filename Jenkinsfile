@@ -14,20 +14,22 @@ pipeline {
             }
         }
 
-        stage('Verify files') {
+        stage('Verify AWS Identity') {
             steps {
-                sh 'ls -la'
+                withAWS(credentials: AWS_CRED_ID, region: AWS_REGION) {
+                    sh 'aws sts get-caller-identity'
+                }
             }
         }
 
         stage('Deploy to S3') {
             steps {
                 withAWS(credentials: AWS_CRED_ID, region: AWS_REGION) {
-                    sh """
-                      aws s3 sync . s3://${S3_BUCKET} \
-                        --exclude ".git/*" \
-                        --exclude "Jenkinsfile"
-                    """
+                    sh '''
+                       aws s3 sync . s3://${S3_BUCKET} \
+                           --exclude ".git/*" \
+                           --exclude "Jenkinsfile"
+                    '''
                 }
             }
         }
